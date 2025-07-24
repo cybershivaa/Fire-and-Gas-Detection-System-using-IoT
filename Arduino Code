@@ -1,0 +1,76 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// LCD setup for I2C address 0x27
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Pin definitions
+const int gasSensorPin = A0;
+const int flameSensorPin = 2;
+const int buzzerPin = 8;
+const int ledPin = 7;
+
+// Threshold for gas sensor (adjust based on environment)
+const int gasThreshold = 300;
+
+void setup() {
+  // LCD setup
+  lcd.begin(16, 2);
+  lcd.backlight();
+
+  // Serial monitor (for debugging)
+  Serial.begin(9600);
+
+  // Pin modes
+  pinMode(gasSensorPin, INPUT);
+  pinMode(flameSensorPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+
+  // Startup message
+  lcd.setCursor(0, 0);
+  lcd.print(" Initializing... ");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(" System Ready! ");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  int gasValue = analogRead(gasSensorPin);
+  int flameValue = digitalRead(flameSensorPin); // LOW = fire detected
+
+  Serial.print("Gas: ");
+  Serial.print(gasValue);
+  Serial.print(" | Flame: ");
+  Serial.println(flameValue);
+
+  // Check for gas/smoke
+  if (gasValue > gasThreshold) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Smoke Detected!");
+    digitalWrite(buzzerPin, HIGH);
+    digitalWrite(ledPin, HIGH);
+  }
+  // Check for fire
+  else if (flameValue == LOW) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Fire Detected!");
+    digitalWrite(buzzerPin, HIGH);
+    digitalWrite(ledPin, HIGH);
+  }
+  // Safe condition
+  else {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Status: Normal");
+    digitalWrite(buzzerPin, LOW);
+    digitalWrite(ledPin, LOW);
+  }
+
+  delay(1000); // Delay for readability
+}
